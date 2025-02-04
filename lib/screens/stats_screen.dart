@@ -13,17 +13,19 @@ class StatsScreen extends StatelessWidget {
     return BlocBuilder<ExpenseBloc, ExpenseState>(
       builder: (context, state) {
         if (state is ExpenseLoaded) {
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildTotalExpenses(state.expenses),
-                const SizedBox(height: 24),
-                _buildPieChart(state.expenses),
-                const SizedBox(height: 24),
-                _buildMonthlyTrend(state.expenses),
-              ],
+          return SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildTotalExpenses(state.expenses),
+                  const SizedBox(height: 24),
+                  _buildPieChart(state.expenses),
+                  const SizedBox(height: 24),
+                  _buildMonthlyTrend(state.expenses),
+                ],
+              ),
             ),
           );
         }
