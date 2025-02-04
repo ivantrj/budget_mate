@@ -12,9 +12,9 @@ class ExpenseInputSheet extends StatefulWidget {
 }
 
 class _ExpenseInputSheetState extends State<ExpenseInputSheet> {
+  ExpenseCategory _selectedCategory = ExpenseCategory.shopping;
   final _commentController = TextEditingController();
   String _amount = '';
-  final ExpenseCategory _selectedCategory = ExpenseCategory.shopping;
 
   @override
   void dispose() {
@@ -58,17 +58,20 @@ class _ExpenseInputSheetState extends State<ExpenseInputSheet> {
                           ),
                         ),
                         const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: Colors.blue[100],
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Row(
-                            children: [
-                              Icon(Icons.shopping_bag_outlined),
-                              Icon(Icons.keyboard_arrow_down),
-                            ],
+                        GestureDetector(
+                          onTap: _showCategoryPicker,
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: _getCategoryColor(_selectedCategory).withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(_getCategoryIcon(_selectedCategory)),
+                                const Icon(Icons.keyboard_arrow_down),
+                              ],
+                            ),
                           ),
                         ),
                       ],
@@ -172,5 +175,68 @@ class _ExpenseInputSheetState extends State<ExpenseInputSheet> {
         ],
       ),
     );
+  }
+
+  void _showCategoryPicker() {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Select Category',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            ...ExpenseCategory.values.map((category) => ListTile(
+              leading: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: _getCategoryColor(category).withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(_getCategoryIcon(category), color: _getCategoryColor(category)),
+              ),
+              title: Text(category.toString().split('.').last),
+              onTap: () {
+                setState(() {
+                  _selectedCategory = category;
+                });
+                Navigator.pop(context);
+              },
+            )),
+          ],
+        ),
+      ),
+    );
+  }
+
+  IconData _getCategoryIcon(ExpenseCategory category) {
+    switch (category) {
+      case ExpenseCategory.shopping:
+        return Icons.shopping_bag;
+      case ExpenseCategory.gifts:
+        return Icons.card_giftcard;
+      case ExpenseCategory.food:
+        return Icons.restaurant;
+      default:
+        return Icons.attach_money;
+    }
+  }
+
+  Color _getCategoryColor(ExpenseCategory category) {
+    switch (category) {
+      case ExpenseCategory.shopping:
+        return Colors.blue;
+      case ExpenseCategory.gifts:
+        return Colors.purple;
+      case ExpenseCategory.food:
+        return Colors.orange;
+      default:
+        return Colors.grey;
+    }
   }
 }
