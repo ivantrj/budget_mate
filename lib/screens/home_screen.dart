@@ -5,6 +5,7 @@ import 'package:flutter_coin/blocs/expense_bloc.dart';
 import 'package:flutter_coin/blocs/expense_event.dart';
 import 'package:flutter_coin/blocs/expense_state.dart';
 import 'package:flutter_coin/models/expense_model.dart';
+import 'package:flutter_coin/widgets/expense_input_sheet.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -14,105 +15,25 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final _formKey = GlobalKey<FormState>();
-  final _amountController = TextEditingController();
-  final _descriptionController = TextEditingController();
-  ExpenseCategory _selectedCategory = ExpenseCategory.food;
+  final _commentController = TextEditingController();
+  int _selectedNavIndex = 0;
 
   @override
   void dispose() {
-    _amountController.dispose();
-    _descriptionController.dispose();
+    _commentController.dispose();
     super.dispose();
   }
 
-  void _showAddExpenseDialog(BuildContext context) {
+  void _showAddExpenseSheet(BuildContext context) {
     final expenseBloc = context.read<ExpenseBloc>();
-    showDialog(
+    
+    showModalBottomSheet(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Add Expense'),
-        content: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextFormField(
-                controller: _amountController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'Amount'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter an amount';
-                  }
-                  if (double.tryParse(value) == null) {
-                    return 'Please enter a valid number';
-                  }
-                  return null;
-                },
-              ),
-              TextFormField(
-                controller: _descriptionController,
-                decoration: const InputDecoration(labelText: 'Description'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter a description';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<ExpenseCategory>(
-                value: _selectedCategory,
-                items: ExpenseCategory.values.map((category) {
-                  return DropdownMenuItem(
-                    value: category,
-                    child: Text(category.toString().split('.').last),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  if (value != null) {
-                    setState(() {
-                      _selectedCategory = value;
-                    });
-                  }
-                },
-                decoration: const InputDecoration(labelText: 'Category'),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              if (_formKey.currentState?.validate() ?? false) {
-                final amount = double.parse(_amountController.text);
-                final description = _descriptionController.text;
-
-                expenseBloc.add(
-                      AddExpense(
-                        Expense(
-                          amount: amount,
-                          description: description,
-                          category: _selectedCategory,
-                          date: DateTime.now(),
-                          id: '',
-                        ),
-                      ),
-                    );
-
-                _amountController.clear();
-                _descriptionController.clear();
-                Navigator.pop(context);
-              }
-            },
-            child: const Text('Add'),
-          ),
-        ],
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => BlocProvider<ExpenseBloc>.value(
+        value: expenseBloc,
+        child: const ExpenseInputSheet(),
       ),
     );
   }
@@ -120,8 +41,38 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      bottomNavigationBar: NavigationBar(
+        destinations: const [
+          NavigationDestination(
+            icon: Icon(Icons.home_outlined),
+            selectedIcon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.grid_view_outlined),
+            selectedIcon: Icon(Icons.grid_view),
+            label: 'Categories',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.bar_chart_outlined),
+            selectedIcon: Icon(Icons.bar_chart),
+            label: 'Stats',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.person_outline),
+            selectedIcon: Icon(Icons.person),
+            label: 'Profile',
+          ),
+        ],
+        selectedIndex: _selectedNavIndex,
+        onDestinationSelected: (index) {
+          setState(() {
+            _selectedNavIndex = index;
+          });
+        },
+      ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => _showAddExpenseDialog(context),
+        onPressed: () => _showAddExpenseSheet(context),
         child: const Icon(Icons.add),
       ),
       body: SafeArea(
