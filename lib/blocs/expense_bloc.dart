@@ -7,6 +7,7 @@ class ExpenseBloc extends Bloc<ExpenseEvent, ExpenseState> {
   ExpenseBloc() : super(ExpenseInitial()) {
     on<LoadExpenses>(_onLoadExpenses);
     on<AddExpense>(_onAddExpense);
+    // on<ClearExpenses>(_onClearExpenses);
     on<DeleteExpense>(_onDeleteExpense);
   }
 

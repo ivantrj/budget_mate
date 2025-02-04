@@ -2,9 +2,11 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_coin/blocs/expense_bloc.dart';
-import 'package:flutter_coin/blocs/expense_event.dart';
 import 'package:flutter_coin/blocs/expense_state.dart';
 import 'package:flutter_coin/models/expense_model.dart';
+import 'package:flutter_coin/screens/categories_screen.dart';
+import 'package:flutter_coin/screens/settings_screen.dart';
+import 'package:flutter_coin/screens/stats_screen.dart';
 import 'package:flutter_coin/widgets/expense_input_sheet.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -26,7 +28,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _showAddExpenseSheet(BuildContext context) {
     final expenseBloc = context.read<ExpenseBloc>();
-    
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -59,9 +61,9 @@ class _HomeScreenState extends State<HomeScreen> {
             label: 'Stats',
           ),
           NavigationDestination(
-            icon: Icon(Icons.person_outline),
-            selectedIcon: Icon(Icons.person),
-            label: 'Profile',
+            icon: Icon(Icons.settings_outlined),
+            selectedIcon: Icon(Icons.settings),
+            label: 'Settings',
           ),
         ],
         selectedIndex: _selectedNavIndex,
@@ -75,26 +77,34 @@ class _HomeScreenState extends State<HomeScreen> {
         onPressed: () => _showAddExpenseSheet(context),
         child: const Icon(Icons.add),
       ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: BlocBuilder<ExpenseBloc, ExpenseState>(
-            builder: (context, state) {
-              if (state is ExpenseLoaded) {
-                return Column(
-                  children: [
-                    _buildHeader(state),
-                    const SizedBox(height: 20),
-                    _buildChart(state),
-                    const SizedBox(height: 20),
-                    _buildExpenseList(state),
-                  ],
-                );
-              }
-              return const Center(child: CircularProgressIndicator());
-            },
+      body: IndexedStack(
+        index: _selectedNavIndex,
+        children: [
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: BlocBuilder<ExpenseBloc, ExpenseState>(
+                builder: (context, state) {
+                  if (state is ExpenseLoaded) {
+                    return Column(
+                      children: [
+                        _buildHeader(state),
+                        const SizedBox(height: 20),
+                        _buildChart(state),
+                        const SizedBox(height: 20),
+                        _buildExpenseList(state),
+                      ],
+                    );
+                  }
+                  return const Center(child: CircularProgressIndicator());
+                },
+              ),
+            ),
           ),
-        ),
+          const CategoriesScreen(),
+          const StatsScreen(),
+          const SettingsScreen(),
+        ],
       ),
     );
   }
@@ -135,7 +145,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (expenses.isEmpty) return const SizedBox.shrink();
 
     // Group expenses by day
-    final Map<int, double> dailyExpenses = {};
+    final dailyExpenses = <int, double>{};
     for (final expense in expenses) {
       final day = expense.date.day;
       dailyExpenses[day] = (dailyExpenses[day] ?? 0) + expense.amount;
@@ -151,7 +161,6 @@ class _HomeScreenState extends State<HomeScreen> {
               1.2,
           barTouchData: BarTouchData(enabled: false),
           titlesData: FlTitlesData(
-            show: true,
             bottomTitles: AxisTitles(
               sideTitles: SideTitles(
                 showTitles: true,
@@ -160,15 +169,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 },
               ),
             ),
-            leftTitles: const AxisTitles(
-              sideTitles: SideTitles(showTitles: false),
-            ),
-            topTitles: const AxisTitles(
-              sideTitles: SideTitles(showTitles: false),
-            ),
-            rightTitles: const AxisTitles(
-              sideTitles: SideTitles(showTitles: false),
-            ),
+            leftTitles: const AxisTitles(),
+            topTitles: const AxisTitles(),
+            rightTitles: const AxisTitles(),
           ),
           gridData: const FlGridData(show: false),
           borderData: FlBorderData(show: false),
